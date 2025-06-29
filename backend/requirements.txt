@@ -11,4 +11,5 @@ firebase-admin
 openai
 langgraph
 python-dotenv
+google-generativeai
 # sqlite3 is included with Python, no need to install 
