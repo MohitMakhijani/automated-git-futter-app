@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FastAPI Supabase Demo UI</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    input, button, select, textarea { margin: 0.2em 0.5em 0.2em 0; }
+    .section { border: 1px solid #ccc; padding: 1em; margin-bottom: 2em; border-radius: 8px; }
+    .section h2 { margin-top: 0; }
+    #response { white-space: pre-wrap; background: #f9f9f9; padding: 1em; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>FastAPI + Supabase End-to-End Demo UI</h1>
+  <label>API Base URL: <input id="baseUrl" value="http://127.0.0.1:8000" size="40"></label>
+  <hr>
+
+  <div class="section">
+    <h2>Register User</h2>
+    <input id="reg_github_id" placeholder="github_id">
+    <input id="reg_access_token" placeholder="access_token">
+    <input id="reg_fcm_token" placeholder="fcm_token (optional)">
+    <button onclick="registerUser()">Register</button>
+  </div>
+
+  <div class="section">
+    <h2>Add Repository</h2>
+    <input id="repo_github_repo_id" placeholder="github_repo_id">
+    <input id="repo_owner_id" placeholder="owner_id (user UUID)">
+    <button onclick="addRepo()">Add Repo</button>
+  </div>
+
+  <div class="section">
+    <h2>Add Commit</h2>
+    <input id="commit_repo_id" placeholder="repo_id (UUID)">
+    <input id="commit_hash" placeholder="commit_hash">
+    <textarea id="commit_summary" placeholder="summary (JSON)" rows="2" cols="30">{ "summary": "Test" }</textarea>
+    <input id="commit_efficiency" placeholder="efficiency (float)">
+    <button onclick="addCommit()">Add Commit</button>
+  </div>
+
+  <div class="section">
+    <h2>View Data</h2>
+    <button onclick="fetchData('users')">Get Users</button>
+    <button onclick="fetchData('repositories')">Get Repositories</button>
+    <button onclick="fetchData('commits')">Get Commits</button>
+    <button onclick="fetchData('developers')">Get Developers</button>
+    <button onclick="fetchData('pull_requests')">Get PRs</button>
+  </div>
+
+  <div class="section">
+    <h2>AI Analyze Commit (if endpoint exists)</h2>
+    <input id="analyze_repo" placeholder="repo">
+    <input id="analyze_commit_hash" placeholder="commit_hash">
+    <textarea id="analyze_diff" placeholder="diff" rows="2" cols="30"></textarea>
+    <button onclick="analyzeCommit()">Analyze</button>
+  </div>
+
+  <div class="section">
+    <h2>Response</h2>
+    <div id="response"></div>
+  </div>
+
+  <script>
+    function apiUrl(path) {
+      let base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+      return base + path;
+    }
+
+    function showResponse(data) {
+      document.getElementById('response').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
+
+    async function registerUser() {
+      const body = {
+        github_id: document.getElementById('reg_github_id').value,
+        access_token: document.getElementById('reg_access_token').value,
+      };
+      const fcm = document.getElementById('reg_fcm_token').value;
+      if (fcm) body.fcm_token = fcm;
+      const res = await fetch(apiUrl('/users/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      showResponse(await res.json());
+    }
+
+    async function addRepo() {
+      const body = {
+        github_repo_id: document.getElementById('repo_github_repo_id').value,
+        owner_id: document.getElementById('repo_owner_id').value
+      };
+      const res = await fetch(apiUrl('/repositories/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      showResponse(await res.json());
+    }
+
+    async function addCommit() {
+      const body = {
+        repo_id: document.getElementById('commit_repo_id').value,
+        commit_hash: document.getElementById('commit_hash').value,
+        summary: JSON.parse(document.getElementById('commit_summary').value),
+        efficiency: parseFloat(document.getElementById('commit_efficiency').value)
+      };
+      const res = await fetch(apiUrl('/commits/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      showResponse(await res.json());
+    }
+
+    async function fetchData(endpoint) {
+      const res = await fetch(apiUrl('/' + endpoint + '/'));
+      showResponse(await res.json());
+    }
+
+    async function analyzeCommit() {
+      const body = {
+        repo: document.getElementById('analyze_repo').value,
+        commit_hash: document.getElementById('analyze_commit_hash').value,
+        diff: document.getElementById('analyze_diff').value
+      };
+      const res = await fetch(apiUrl('/analyze'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      showResponse(await res.json());
+    }
+  </script>
+</body>
+</html> 

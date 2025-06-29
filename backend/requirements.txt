@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+psycopg2-binary
+python-jose
+httpx
+pydantic
+PyGithub
+firebase-admin
+openai
+langgraph
+python-dotenv
+# sqlite3 is included with Python, no need to install 
